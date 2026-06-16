@@ -6,7 +6,7 @@ description: >-
   rough question, it returns a research packet: the real demand (how coaches
   actually ask this), candidate canon facts that apply, and any gaps. Delegate to
   this agent at the start of a run, before the question is defined.
-tools: Read, Grep, Glob, WebSearch, WebFetch
+tools: Read, Grep, Glob, WebSearch, WebFetch, mcp__kliq-research__search_questions, mcp__kliq-research__list_data_candidates
 model: sonnet
 ---
 
@@ -25,9 +25,16 @@ Definer will turn into one canonical question. You do two things:
    answer. List each by `id`, value, and freshness status. Flag any obvious gap
    where the topic needs a number that canon does not have.
 
-When the kliq-research MCP server is connected, use its read tools (Community EDA
-and the Aiya research lake on BigQuery) to surface question demand and data
-candidates. Until then, work from `canon/` and the topic given to you.
+Use the kliq-research read tools (Community EDA and the Aiya research lake on
+BigQuery):
+
+- `search_questions(topic)` for the real demand: how coaches phrase it and the
+  likely Growth Ladder stage.
+- `list_data_candidates(topic)` for the candidate canon facts that could ground
+  the answer, each with its `status`. Only `verified` entries are citable; surface
+  `candidate` entries so the Definer and a human know what still needs verifying.
+
+If the server is unavailable, fall back to reading `canon/` directly.
 
 ## How to work
 

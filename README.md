@@ -45,9 +45,9 @@ Demand Researcher
 1. Open this folder in Claude Code (desktop app). `CLAUDE.md` loads automatically.
 2. The 7 agents live in `.claude/agents/`. Run `/agents` to review them; edits on
    disk need a session restart to load.
-3. The `kliq-cms` MCP server is wired via `.mcp.json` (the dev stub by default).
-   Restart the session so the `mcp__kliq-cms__*` tools load. Add `kliq-research`
-   when that server is available.
+3. Both MCP servers are wired via `.mcp.json` (dev stubs by default): `kliq-cms`
+   (draft write) and `kliq-research` (read). Restart the session so the
+   `mcp__kliq-cms__*` and `mcp__kliq-research__*` tools load.
 4. Trigger a run, for example:
    > Run the answer factory on: why do members go quiet after joining a community.
 5. Approve at the three checkpoints. Publishing is a human action in Payload `/admin`.
@@ -64,8 +64,9 @@ content/                          approved answer markdown, handed to Publisher
 reports/                          Fact-Checker grounding reports, per answer
 .claude/agents/                   the 7 agent files
 .claude/skills/answer-factory/    the orchestrator
-.mcp.json                         registers the kliq-cms MCP server
+.mcp.json                         registers the kliq-cms + kliq-research MCP servers
 tools/kliq-cms-stub/              local dev stub for kliq-cms (swap in Phase 2)
+tools/kliq-research-stub/         local dev stub for kliq-research (read-only)
 kliq-website/                     drop-in reference artifacts for the Next.js + Payload repo
 ```
 

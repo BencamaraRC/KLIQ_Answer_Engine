@@ -6,6 +6,10 @@
       "env": {
         "KLIQ_CMS_ADMIN_BASE": "http://localhost:3000/admin"
       }
+    },
+    "kliq-research": {
+      "command": "node",
+      "args": ["tools/kliq-research-stub/server.mjs"]
     }
   }
 }

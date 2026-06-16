@@ -33,7 +33,8 @@ Produce a brief the Answer Writer can execute without judgement calls. It covers
    `search_answers` to confirm the slug is not a duplicate.
 4. **Schema plan.** Whether the page uses FAQPage or Article JSON-LD, and what
    maps into it (the question, the meta description).
-5. **CTA.** Tuned to the ladder stage.
+5. **CTA.** Pick the stage's default from `canon/brand/ctas.md`. If its href is
+   still `TBC`, flag it as a gap rather than shipping a broken link.
 
 ## How to work
 
