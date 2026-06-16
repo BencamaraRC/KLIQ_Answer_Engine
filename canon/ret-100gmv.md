@@ -1,19 +1,31 @@
 ---
 id: ret-100gmv
-claim: retention at the $100 GMV milestone
+claim: retention rate of coaches at the $100 cumulative GMV milestone
 value: 64%
-source: platform cohort analysis
-source_url:
-last_updated: 2026-05
+source_type: first_party
+metric_definition: >
+  Share of coaches who first crossed $100 cumulative GMV in the cohort window and
+  were still active (paying subscriber or logged platform activity) 6 months after
+  crossing. Numerator: cohort members active in the month around their six-month
+  mark. Denominator: the full cohort. See query_ref.
+dataset: rcwl-data.prod_dataset
+query_ref: bq://saved_query/ret_100gmv_v1
+sample_n: 92            # [CONFIRM with Manish] coaches in the cohort
+as_of: 2026-05-19
+derived_by: manish
+approved_by: jufel
 freshness_window: 6 months
-scope: coaches who reach $100 lifetime GMV
-status: seed-needs-verification
+public_sentence: >
+  Across 92 KLIQ coaches who crossed $100 in cumulative GMV (as of May 2026), 64%
+  were still active six months later.
+status: candidate
 ---
 
-Coaches who cross the $100 GMV milestone retain at 64%. The $100 mark is the
-first revenue threshold where retention separates clearly from coaches who never
-monetise.
+The worked example in ANSWER-002 Section 6. The $100 mark is the first revenue
+threshold where retention separates clearly from coaches who never monetise.
 
-Provisional figure from the engineering brief (ANSWER-001 v1.1). Needs a primary
-`source_url` from the retention cohort analysis before it can ground a published
-answer.
+Verification still open: confirm `sample_n` (92) and reproduce the query with
+Manish, then an editor approves the public_sentence. Different definition choices
+(active vs paying, 6mo vs 3mo) give different numbers, which is why the definition
+is locked before deriving. On reproduction and sign-off, flip `status` to
+`verified`.

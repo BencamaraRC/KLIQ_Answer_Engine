@@ -13,3 +13,6 @@ node_modules/
 npm-debug.log*
 .env
 .env.local
+
+# kliq-cms dev stub local data (drafts live in the CMS, not in git)
+tools/kliq-cms-stub/.data/

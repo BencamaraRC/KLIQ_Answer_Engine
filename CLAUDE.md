@@ -58,8 +58,18 @@ self-graded, which the whole model exists to prevent.
 
 ## Do Not Do
 
-- Do not state any coach-outcome number that is not in `canon/` with a source
-  and date.
+- Do not state any coach-outcome number that is not a `verified` canon entry.
+- Do not promote a number from a slide, memory, or chat to canon without a query
+  and an n.
+- Do not publish a number without its sample size (n) and as-of date.
+- Do not use "currently" or "today" for a point-in-time stat. Use the as-of date.
+- Do not state a percentage-point lift without naming the baseline and the
+  comparison group.
+- Do not present a third-party market stat as KLIQ data, or KLIQ data without
+  aggregation.
+- Do not publish a named coach's revenue, or any figure that identifies an
+  individual.
+- Do not change a number's definition to fit a sentence. Change the sentence.
 - Do not use em dashes. Use commas or periods.
 - Do not use "genuine" or "genuinely." Do not write motivational filler or
   corporate-speak.
@@ -92,13 +102,24 @@ Every answer maps to one stage. The stage drives the hub page and the CTA.
 - **monetise** pricing, tiers, first revenue, GMV milestones
 - **scale** systematising, higher tiers, sustained GMV
 
-## Canon entry schema
+## Canon and the Verification Standard
 
-Each file in `canon/` is one fact with YAML frontmatter:
+Canon is governed by the **Canon Verification Standard (ANSWER-002 v1.0)**. For
+KLIQ's own numbers, you are the source. Citable does not mean finding a URL. It
+means each fact is reproducible and provenance-stamped: a locked metric
+definition, a query that reproduces it, a sample size, and an as-of date. A number
+from a deck, a memory, or a chat is a candidate, not a fact.
 
-```
-id, claim, value, source, source_url, last_updated, freshness_window, scope
-```
+Every entry is one of two types:
 
-The Fact-Checker reads this directly. A stat with no canon entry cannot ship. A
-stat past its freshness window fails. See `canon/README.md` for the full spec.
+- **first_party** a KLIQ platform number. Verified by a locked `metric_definition`
+  + `query_ref` + `sample_n` + `as_of`, derived by Manish, approved by an editor.
+- **third_party** an external stat. Verified by a live `source_url` + `accessed`
+  date. Never dressed up as KLIQ data.
+
+The `public_sentence` is the only sanctioned phrasing. The Answer Writer uses it
+verbatim, or paraphrases without changing the number, definition, n, or date.
+
+A fact is citable only when `status: verified`. Until then it is a candidate and
+cannot ship. A stat past its freshness window fails until re-derived. See
+`canon/README.md` for the full schema and process.

@@ -26,9 +26,13 @@ voice.
   requires.
 - Follow the brief's structure exactly. Lead with the answer, then the evidence,
   then what the coach should do.
-- For every coach-outcome number, cite the canon fact: state the number, then the
-  source in plain language. "44% of members post once and never return, from
-  community EDA." Put the fact's `id` in `citedCanonIds`.
+- For every coach-outcome number, use the canon entry's `public_sentence`. Use it
+  verbatim, or paraphrase without changing the number, its definition, its sample
+  size (n), or its as-of date. The number, the n, and the as-of date must appear.
+  Put the fact's `id` in `citedCanonIds`.
+- Only cite canon entries with `status: verified`. If the brief required a fact
+  that is still a `candidate`, do not write the number. Flag it and stop, this is
+  a loop back, not something you work around.
 - Match the frontmatter shape in `content/README.md`: title, slug, question,
   intent, ladderStage, citedCanonIds, relatedQuestions, cta, seo.
 
@@ -36,9 +40,12 @@ voice.
 
 - No em dashes. Use commas or periods.
 - Never use "genuine" or "genuinely." No motivational filler, no corporate-speak.
-- Every number traces to a canon id. If the brief did not give you a citable fact
-  for a claim, do not invent one. Write it qualitatively or leave it out.
-- Point-in-time community numbers cite the snapshot date, never "currently."
+- Every number traces to a `verified` canon id via its `public_sentence`. If the
+  brief did not give you a citable fact for a claim, do not invent one. Write it
+  qualitatively or leave it out.
+- Point-in-time community numbers cite the as-of date, never "currently" or "today."
+- A percentage-point lift must name its baseline and comparison group.
+- Do not change a number's definition to fit your sentence. Change the sentence.
 
 ## What you return
 

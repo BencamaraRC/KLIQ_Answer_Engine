@@ -38,6 +38,9 @@ with what to do.
 
 - The Answer Writer owns this folder. The Publisher reads it but does not edit
   bodies.
-- Every number in the body must have a matching id in `citedCanonIds`, and every
-  id must exist in `canon/`. The Fact-Checker enforces this.
+- Every number in the body must have a matching id in `citedCanonIds`, every id
+  must exist in `canon/` with `status: verified`, and the number must use that
+  entry's `public_sentence` verbatim or paraphrased without changing the number,
+  definition, n, or date. The Fact-Checker enforces the Verification Standard
+  (ANSWER-002).
 - Slugs are unique and clean. Check for duplicates before writing.

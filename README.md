@@ -14,6 +14,15 @@ This repo is one of three:
 | **kliq-website** | Next.js + Payload. Owns the live `/answers` pages and JSON-LD. |
 | **kliq-cms** | Remote HTTP MCP server. The bridge that wraps Payload as the draft-only factory user. |
 
+A local **kliq-cms dev stub** ships in this repo at `tools/kliq-cms-stub/` so the
+factory runs end to end without Payload. It is registered in `.mcp.json` as the
+`kliq-cms` server and exposes the four Appendix C tools as `mcp__kliq-cms__*`.
+Swap it for the real server in Phase 2.
+
+Canon is governed by the **Canon Verification Standard (ANSWER-002 v1.0)**: KLIQ
+is the source, so a fact is citable only when it has a locked definition, a query
+that reproduces it, a sample size, and a date. See [canon/README.md](canon/README.md).
+
 ## How it works
 
 Seven Claude Code subagents run as a chain, with three human checkpoints. One
@@ -36,8 +45,9 @@ Demand Researcher
 1. Open this folder in Claude Code (desktop app). `CLAUDE.md` loads automatically.
 2. The 7 agents live in `.claude/agents/`. Run `/agents` to review them; edits on
    disk need a session restart to load.
-3. Connect the two MCP servers (`kliq-research`, `kliq-cms`) so the read-only
-   agents can reach the data.
+3. The `kliq-cms` MCP server is wired via `.mcp.json` (the dev stub by default).
+   Restart the session so the `mcp__kliq-cms__*` tools load. Add `kliq-research`
+   when that server is available.
 4. Trigger a run, for example:
    > Run the answer factory on: why do members go quiet after joining a community.
 5. Approve at the three checkpoints. Publishing is a human action in Payload `/admin`.

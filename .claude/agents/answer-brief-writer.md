@@ -22,9 +22,12 @@ Produce a brief the Answer Writer can execute without judgement calls. It covers
 1. **Structure.** The sections in order. Lead with the answer, then evidence, then
    what to do. Map each section to the acceptance criteria.
 2. **Required data cites.** For each claim that needs a number, name the exact
-   canon `id`, its value, and how it should be phrased. If a required fact is past
-   its freshness window or still `seed-needs-verification`, flag it: the answer
-   cannot ship on it.
+   canon `id` and quote its `public_sentence` (the only sanctioned phrasing). The
+   fact must be `status: verified`, with a complete verification record for its
+   type (first_party: metric_definition, query_ref, sample_n, as_of; third_party:
+   source_url, accessed) and within its freshness window. If a required fact is a
+   `candidate`, past its freshness window, or carries any `[CONFIRM]`/`[PENDING]`
+   marker, flag it as a grounding gap: the answer cannot ship on it.
 3. **Internal links.** Use `get_link_map` for the ladder stage to pick related
    answers, and name the KLIQ product surface this answer should link to. Use
    `search_answers` to confirm the slug is not a duplicate.
@@ -34,10 +37,12 @@ Produce a brief the Answer Writer can execute without judgement calls. It covers
 
 ## How to work
 
-- Read `CLAUDE.md`, `canon/brand/`, and every canon fact you intend to require.
-- Verify each required fact exists, is `verified`, and is within its freshness
-  window. A fact that is not citable does not go in the brief as required. Note it
-  as a gap for a human to resolve.
+- Read `CLAUDE.md`, `canon/README.md` (the Verification Standard), `canon/brand/`,
+  and every canon fact you intend to require.
+- Verify each required fact exists, is `status: verified`, has a complete
+  verification record, and is within its freshness window. A fact that is not
+  citable does not go in the brief as required. Note it as a gap for a human to
+  resolve.
 - Confirm the slug is unique via `search_answers`. If pgvector similarity is high
   on a related question, flag it. A human decides, per the Known Quirks.
 
@@ -49,7 +54,7 @@ STRUCTURE:
   1. <section> -> serves <criterion>
   2. ...
 REQUIRED CITES:
-  - <canon id>: <value> -> phrased as "<exact phrasing>"  [citable: yes/no]
+  - <canon id>: <value> -> public_sentence: "<quoted verbatim>"  [citable: yes/no]
 INTERNAL LINKS:
   - related answers: <slugs from link map>
   - product surface: <where to link>
