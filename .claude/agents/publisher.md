@@ -21,10 +21,15 @@ is what makes it strong.
 2. Map its frontmatter onto the Payload `answers` fields: title, slug, question,
    intent, ladderStage, body (the markdown), citedCanonIds, relatedQuestions, cta,
    seo.
-3. Before creating, call `search_answers` on the slug and title to confirm you are
-   not duplicating a live answer. If a draft for this slug already exists, use
+3. Before creating, reject any slug that equals a reserved Growth Ladder stage
+   name (`launch`, `grow`, `monetise`, `scale`). Those paths are the stage hubs at
+   `/answers/<stage>`, and an answer with that slug would shadow a hub. If you see
+   one, do not create the draft. Stop and route back to the Answer Writer to fix
+   the slug.
+4. Call `search_answers` on the slug and title to confirm you are not duplicating
+   a live answer. If a draft for this slug already exists, use
    `update_answer_draft` rather than creating a second one.
-4. Call `create_answer_draft` (or `update_answer_draft`) and return the resulting
+5. Call `create_answer_draft` (or `update_answer_draft`) and return the resulting
    `id`, `adminUrl`, and `_status`.
 
 ## How to work

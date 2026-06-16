@@ -75,6 +75,8 @@ self-graded, which the whole model exists to prevent.
   corporate-speak.
 - Do not publish an answer that duplicates an existing `/answers` page. Check
   slug and embedding similarity first.
+- Do not use a reserved Growth Ladder stage name (`launch`, `grow`, `monetise`,
+  `scale`) as an answer slug. Those paths are the stage hubs at `/answers/<stage>`.
 - Do not invent citations or link to unverified sources.
 - Do not let the Answer Writer touch rendering, or the Publisher edit the answer
   body.

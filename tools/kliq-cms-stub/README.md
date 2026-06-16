@@ -22,6 +22,12 @@ file at `tools/kliq-cms-stub/.data/drafts.json`:
 do, like the real factory user, is leave a draft in the queue. Publishing stays a
 human action.
 
+**Reserved-slug guard.** `create_answer_draft` and `update_answer_draft` reject a
+slug equal to a Growth Ladder stage (`launch`, `grow`, `monetise`, `scale`),
+because that would shadow the stage hub at `/answers/<stage>`. This enforces the
+routing rule at the CMS boundary, not just in the agent prompt. The real kliq-cms
+should do the same.
+
 ## How it is wired
 
 Registered as the `kliq-cms` server in the repo-root `.mcp.json`, so Claude Code

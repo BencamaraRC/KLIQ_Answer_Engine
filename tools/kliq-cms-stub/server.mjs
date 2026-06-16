@@ -37,6 +37,18 @@ const ANSWER_FIELDS = [
   'title', 'slug', 'question', 'intent', 'ladderStage', 'body',
   'citedCanonIds', 'relatedQuestions', 'cta', 'seo',
 ]
+
+// Reserved Growth Ladder stage slugs. An answer with one of these would shadow a
+// stage hub page at /answers/<stage>, so the CMS rejects it at the boundary, not
+// just by agent prompt.
+const RESERVED_SLUGS = new Set(['launch', 'grow', 'monetise', 'scale'])
+function assertSlugAllowed(slug) {
+  if (slug !== undefined && RESERVED_SLUGS.has(String(slug))) {
+    throw new Error(
+      `slug "${slug}" is a reserved Growth Ladder stage; it would shadow the stage hub at /answers/${slug}`,
+    )
+  }
+}
 function pickFields(obj) {
   const out = {}
   for (const k of ANSWER_FIELDS) if (k in obj) out[k] = obj[k]
@@ -126,6 +138,7 @@ const TOOLS = {
       required: ['title', 'slug'],
     },
     handler: (args) => {
+      assertSlugAllowed(args.slug)
       const db = loadDb()
       if (db.drafts.some((d) => d.slug === args.slug)) {
         throw new Error(
@@ -162,6 +175,7 @@ const TOOLS = {
       required: ['id'],
     },
     handler: ({ id, ...rest }) => {
+      assertSlugAllowed(rest.slug)
       const db = loadDb()
       const draft = db.drafts.find((d) => d.id === id)
       if (!draft) throw new Error(`no draft with id "${id}"`)

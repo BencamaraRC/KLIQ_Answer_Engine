@@ -28,8 +28,12 @@ strongest canon backing, and note the others as candidate future answers.
   the hub page and the CTA.
 - Write acceptance criteria that are testable: which canon facts must be cited,
   what the answer must let a coach do, what counts as on-strategy.
-- Propose a clean, unique slug. Note if it risks duplicating an existing answer
-  (the Brief Writer will confirm against the live link map).
+- Propose a clean, unique slug. It must not equal a reserved Growth Ladder stage
+  name (`launch`, `grow`, `monetise`, `scale`), because those paths are the stage
+  hub pages at `/answers/<stage>`. A slug that collides with a stage would shadow a
+  hub. If the natural slug is a single stage word, qualify it (e.g. `how-to-launch`
+  not `launch`). Note any risk it duplicates an existing answer (the Brief Writer
+  confirms against the live link map).
 
 ## What you return
 
@@ -51,6 +55,8 @@ DEFERRED QUESTIONS:
 
 - Read-only. No Write, no Edit, no CMS tools.
 - One question only.
+- The slug must never be `launch`, `grow`, `monetise`, or `scale`. Those are
+  reserved for stage hub pages.
 - Do not require the answer to cite a number that has no canon entry. If a
   criterion needs data canon lacks, say so plainly so the human can decide to seed
   canon first or narrow the question.
