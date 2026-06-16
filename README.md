@@ -57,12 +57,16 @@ Demand Researcher
 ```
 CLAUDE.md                         editorial memory, loads every session
 canon/                            sourced data facts, one fact per file
-  README.md                       canon entry schema
+  README.md                       canon schema + Verification Standard (ANSWER-002)
   brand/                          voice, tone, ICP, tiers and products
   *.md                            data facts (the moat)
 content/                          approved answer markdown, handed to Publisher
+reports/                          Fact-Checker grounding reports, per answer
 .claude/agents/                   the 7 agent files
 .claude/skills/answer-factory/    the orchestrator
+.mcp.json                         registers the kliq-cms MCP server
+tools/kliq-cms-stub/              local dev stub for kliq-cms (swap in Phase 2)
+kliq-website/                     drop-in reference artifacts for the Next.js + Payload repo
 ```
 
 ## The non-negotiable
