@@ -25,32 +25,37 @@ that reproduces it, a sample size, and a date. See [canon/README.md](canon/READM
 
 ## How it works
 
-Seven Claude Code subagents run as a chain, with three human checkpoints. One
-trigger prompt starts a run. See [CLAUDE.md](CLAUDE.md) for the full model and
-[.claude/skills/answer-factory/SKILL.md](.claude/skills/answer-factory/SKILL.md)
-for the orchestration.
+Founder-operated (ANSWER-003). Ben runs the chain in the browser through Claude,
+verifies the canon by hand, and every answer carries a publish verdict. No infra.
+The agent chain is unchanged; the approval model is now conditional, not three
+fixed checkpoints. See [CLAUDE.md](CLAUDE.md) and
+[docs/answer-003-operating-model.md](docs/answer-003-operating-model.md).
 
 ```
 Demand Researcher
-  -> Question Definer            [CHECKPOINT 1: approve the question]
-  -> Answer Brief Writer         [CHECKPOINT 2: approve the brief]
+  -> Question Definer            (operator may edit)
+  -> Answer Brief Writer         (operator may edit; flags candidate facts)
   -> Answer Writer
-  -> Publisher (draft only)
   -> Fact-Checker
-  -> Editorial Validator         [CHECKPOINT 3: review, then publish in /admin]
+  -> Editorial Validator         emits the verdict: auto-publish | hold | forced
+  -> export (markdown / JSON), then publish
+
+Publisher (Payload draft) is deferred under ANSWER-003.
 ```
 
 ## Quick start
 
-1. Open this folder in Claude Code (desktop app). `CLAUDE.md` loads automatically.
-2. The 7 agents live in `.claude/agents/`. Run `/agents` to review them; edits on
-   disk need a session restart to load.
-3. Both MCP servers are wired via `.mcp.json` (dev stubs by default): `kliq-cms`
-   (draft write) and `kliq-research` (read). Restart the session so the
-   `mcp__kliq-cms__*` and `mcp__kliq-research__*` tools load.
-4. Trigger a run, for example:
+1. Open this folder in Claude Code. `CLAUDE.md` loads automatically.
+2. Open `tools/canon-console/index.html` in a browser. Verify facts (flip
+   candidate to verified), and get a publish verdict for any answer.
+3. Trigger a run in chat, for example:
    > Run the answer factory on: why do members go quiet after joining a community.
-5. Approve at the three checkpoints. Publishing is a human action in Payload `/admin`.
+4. The chain ends with a verdict. If it holds on an unverified stat, verify that
+   stat in the console and re-run the Fact-Checker. Export the answer and publish.
+
+The MCP servers (`kliq-cms`, `kliq-research`) and the `kliq-website` artifacts are
+deferred under ANSWER-003. Their dev stubs stay in `tools/` for when that wiring
+lands.
 
 ## Layout
 
@@ -64,9 +69,11 @@ content/                          approved answer markdown, handed to Publisher
 reports/                          Fact-Checker grounding reports, per answer
 .claude/agents/                   the 7 agent files
 .claude/skills/answer-factory/    the orchestrator
-.mcp.json                         registers the kliq-cms + kliq-research MCP servers
-tools/kliq-cms-stub/              local dev stub for kliq-cms (swap in Phase 2)
-tools/kliq-research-stub/         local dev stub for kliq-research (read-only)
+docs/                             scope and decision records (ANSWER-003)
+tools/canon-console/              founder-operated browser console: verify canon, publish verdict, export
+.mcp.json                         registers the kliq-cms + kliq-research MCP servers (deferred under ANSWER-003)
+tools/kliq-cms-stub/              local dev stub for kliq-cms (deferred)
+tools/kliq-research-stub/         local dev stub for kliq-research (deferred)
 kliq-website/                     drop-in reference artifacts for the Next.js + Payload repo
 ```
 

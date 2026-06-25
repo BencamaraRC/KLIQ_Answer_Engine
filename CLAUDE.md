@@ -19,33 +19,60 @@ source. That single rule governs everything here.
 - `CLAUDE.md` this file, loads every session
 - `canon/` sourced data facts, one fact per markdown file
 - `canon/brand/` voice, tone, ICP, tier and product definitions
-- `content/` approved answer markdown, handed to the Publisher
+- `content/` approved answer markdown, ready to export or publish
+- `tools/canon-console/` the founder-operated browser console: verify canon, get a publish verdict, export
 - `.claude/agents/` the 7 agent files
 - `.claude/skills/answer-factory/` the orchestrator that runs the chain
+- `docs/` scope and decision records (ANSWER-003 operating model)
 
-The live pages live in `kliq-website` (Next.js + Payload). The bridge to Payload
-is `kliq-cms` (remote HTTP MCP). This repo only authors. It does not render and
-it does not publish.
+Under ANSWER-003 this repo authors and decides the publish verdict. Live
+rendering (`kliq-website`) and the Payload bridge (`kliq-cms`) are deferred: their
+artifacts stay in the repo for when that wiring lands.
 
 ## The chain
 
-Seven agents run in order. Three human checkpoints sit in the chain.
+Seven agents run in order. The chain and the separation of jobs are unchanged from
+ANSWER-001. What changed is how it runs and how it is approved (see Operating model).
 
 1. **Demand Researcher** mines real questions and candidate data (read-only)
-2. **Question Definer** one canonical question + acceptance criteria `[CHECKPOINT 1]`
-3. **Answer Brief Writer** structure, required data cites, links, schema plan `[CHECKPOINT 2]`
+2. **Question Definer** one canonical question + acceptance criteria
+3. **Answer Brief Writer** structure, required data cites, links, schema plan
 4. **Answer Writer** writes the answer in KLIQ voice, grounded (write: content only)
-5. **Publisher** creates a draft answer in Payload via kliq-cms (write: drafts only)
+5. **Publisher** creates a draft in Payload via kliq-cms (deferred, see Operating model)
 6. **Fact-Checker** traces every claim to canon, pass/fail report (write: report only)
-7. **Editorial Validator** final independent audit by severity (read-only) `[CHECKPOINT 3]`
+7. **Editorial Validator** independent audit by severity, emits the publish verdict (read-only)
 
-If the Fact-Checker or Validator finds a problem it does not patch. It reports,
-and the chain loops back to the right agent: Answer Writer for a copy or
-grounding miss, Publisher for a draft or schema miss.
+If the Fact-Checker or Validator finds a problem it does not patch. It reports, and
+the chain loops back: Answer Writer for a copy or grounding miss.
 
 Grounding gets its own dedicated pass (Fact-Checker) separate from the holistic
 Editorial Validator. A grounding check folded into the writer would be
 self-graded, which the whole model exists to prevent.
+
+## Operating model (ANSWER-003)
+
+Founder-operated. Ben runs the whole loop in the browser through Claude, zero
+engineering and no servers. ANSWER-003 supersedes the build-team assumptions in
+ANSWER-001. The agent chain stays the same; this is about who runs it and how an
+answer gets approved.
+
+- **Manual grounding.** Ben owns verification. Numbers are flipped from candidate
+  to verified by hand in the canon console (`tools/canon-console/`), not derived by
+  Manish from BigQuery. As each stat is verified, answers that cite it stop holding
+  and qualify for auto-publish. Automated BigQuery verification stays available via
+  the connector, deferred by choice, not blocked.
+- **Conditional auto-publish, not three fixed checkpoints.** Every answer carries a
+  publish verdict:
+  - **auto-publish** no critical or important findings, no ungrounded numbers, and
+    every cited stat verified. Goes live with no human step.
+  - **hold for review** cites an unverified stat, or trips a finding. A human
+    approves before it goes live.
+  - **auto-publish (forced)** the Always-auto override is on. Publishes regardless,
+    and shows what it ignored.
+- **Deferred, not needed for the manual path:** live publishing to joinkliq.io
+  (export and paste for now), the Payload draft step and both MCP servers
+  (kliq-cms, kliq-research), and the four-page production rendering. The dev stubs
+  and `kliq-website/` artifacts in this repo stay valid for when that wiring lands.
 
 ## Voice and copy rules
 
@@ -80,7 +107,11 @@ self-graded, which the whole model exists to prevent.
 - Do not invent citations or link to unverified sources.
 - Do not let the Answer Writer touch rendering, or the Publisher edit the answer
   body.
-- Do not skip a checkpoint. Approval is logged.
+- Do not run Always-auto (forced publish) against the public site until the canon
+  is verified. KLIQ has had a false-claims exposure, so publishing unverified
+  precise stats is the one risk to avoid. Conditional mode prevents it by design.
+- Do not override a hold verdict silently. A forced publish must show what it
+  ignored.
 
 ## Known Quirks
 

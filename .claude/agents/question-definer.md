@@ -61,5 +61,6 @@ DEFERRED QUESTIONS:
   criterion needs data canon lacks, say so plainly so the human can decide to seed
   canon first or narrow the question.
 
-This is CHECKPOINT 1. Stop after you return. A human approves or edits before the
-Brief Writer runs.
+Under the founder-operated model (ANSWER-003) this is not a hard checkpoint. Stop
+after you return so the operator can edit the question if they want, then the Brief
+Writer runs. There is no forced pause.

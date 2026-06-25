@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KLIQ Canon Console</title>
+<style>
+  :root{
+    --bg:#faf9f5; --surface:#fff; --ink:#1f1e1b; --muted:#6b6a64; --line:#e4e2da;
+    --ok:#0f6e56; --ok-bg:#e1f5ee; --warn:#854f0b; --warn-bg:#faeeda;
+    --bad:#a32d2d; --bad-bg:#fcebeb; --accent:#534ab7; --accent-bg:#eeedfe;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+  header h1{font-size:22px;font-weight:600;margin:0 0 4px}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 8px}
+  .bar .spacer{flex:1}
+  button{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);
+    border-radius:8px;padding:7px 12px;cursor:pointer}
+  button:hover{border-color:#c9c7bd}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.ghost{background:transparent}
+  button.danger{color:var(--bad);border-color:#e6c3c3}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);
+    border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--surface)}
+  section{margin-top:26px}
+  section h2{font-size:16px;font-weight:600;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .count{color:var(--muted);font-weight:400;font-size:13px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:10px}
+  .row{display:flex;gap:12px;align-items:flex-start}
+  .row .grow{flex:1;min-width:0}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;
+    font-size:12.5px;font-weight:500;border:1px solid transparent;cursor:pointer;white-space:nowrap}
+  .pill.verified{background:var(--ok-bg);color:var(--ok);border-color:#bfe6d8}
+  .pill.candidate{background:var(--warn-bg);color:var(--warn);border-color:#ecd6ad}
+  .pill:hover{filter:brightness(.97)}
+  .idline{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--accent)}
+  .claim{font-weight:500;margin:2px 0}
+  .meta{font-size:13px;color:var(--muted)}
+  .val{font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{font-size:11.5px;border-radius:6px;padding:2px 8px;border:1px solid var(--line);color:var(--muted)}
+  .chip.miss{background:var(--bad-bg);color:var(--bad);border-color:#e6c3c3}
+  .chip.have{background:var(--ok-bg);color:var(--ok);border-color:#bfe6d8}
+  .edit{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;display:none;
+    grid-template-columns:1fr 1fr;gap:10px}
+  .edit.open{display:grid}
+  .edit label{font-size:12px;color:var(--muted);display:block;margin-bottom:3px}
+  .edit .full{grid-column:1 / -1}
+  input,select,textarea{font:inherit;width:100%;background:var(--surface);color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  textarea{resize:vertical}
+  .actions{display:flex;gap:8px;margin-top:4px}
+  .verdict{font-size:15px;font-weight:600;border-radius:8px;padding:10px 14px;margin:10px 0}
+  .verdict.auto{background:var(--ok-bg);color:var(--ok)}
+  .verdict.hold{background:var(--warn-bg);color:var(--warn)}
+  .verdict.forced{background:var(--accent-bg);color:var(--accent)}
+  ul.reasons{margin:8px 0 0;padding-left:18px;font-size:13.5px}
+  ul.reasons li{margin:3px 0}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .src{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>KLIQ Canon Console</h1>
+    <p>Founder-operated grounding (ANSWER-003). Verify facts by hand, then get a publish verdict. No server, no keys. Edits persist in this browser; Export to keep them.</p>
+  </header>
+
+  <div class="bar">
+    <button class="primary" id="addBtn">Add fact</button>
+    <button id="importBtn">Import JSON</button>
+    <button id="exportJsonBtn">Export JSON</button>
+    <button id="exportMdBtn">Export Markdown</button>
+    <button class="ghost danger" id="resetBtn">Reset to seed</button>
+    <span class="spacer"></span>
+    <label class="toggle"><input type="checkbox" id="alwaysAuto" style="width:auto" /> Always-auto (forced)</label>
+    <input type="file" id="fileInput" accept="application/json" style="display:none" />
+  </div>
+
+  <section>
+    <h2>Canon panel <span class="count" id="canonCount"></span></h2>
+    <div id="canonList"></div>
+  </section>
+
+  <section>
+    <h2>Publish verdict</h2>
+    <p class="hint">Paste a finished answer (markdown with a <code>citedCanonIds</code> list), or type canon ids comma-separated. The verdict reads only the canon below, exactly like the Editorial Validator.</p>
+    <textarea id="answerInput" rows="7" placeholder="Paste answer markdown here, or: eda-post-once, week1-content-engagement"></textarea>
+    <div class="actions" style="margin-top:8px">
+      <button class="primary" id="verdictBtn">Compute verdict</button>
+    </div>
+    <div id="verdictOut"></div>
+  </section>
+</div>
+
+<script>
+const STAGES=["launch","grow","monetise","scale"];
+const SEED=[
+  {id:"ret-100gmv",claim:"retention rate of coaches at the $100 cumulative GMV milestone",value:"64%",source_type:"first_party",status:"candidate",
+   metric_definition:"Share of coaches who first crossed $100 cumulative GMV in the cohort window and were still active 6 months after crossing.",
+   dataset:"rcwl-data.prod_dataset",query_ref:"bq://saved_query/ret_100gmv_v1",sample_n:"92",as_of:"2026-05-19",freshness_window:"6 months",
+   public_sentence:"Across 92 KLIQ coaches who crossed $100 in cumulative GMV (as of May 2026), 64% were still active six months later."},
+  {id:"ret-5000gmv",claim:"retention rate of coaches at the £5,000 cumulative GMV milestone (safe zone)",value:"95%",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+  {id:"week1-content-engagement",claim:"retention lift from member content engagement in Week 1",value:"+43.3pp",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+  {id:"week1-publish-rate",claim:"share of new coaches who publish content in their first week",value:"fewer than 5%",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+  {id:"eda-post-once",claim:"share of community members who post once and never return",value:"44%",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+  {id:"eda-activity-replies",claim:"share of community activity that is replies rather than new posts",value:"68%",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+  {id:"eda-reply-time",claim:"median reply time in the tightest communities",value:"70 to 120 minutes",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+  {id:"eda-top10-posts",claim:"share of community posts produced by the most active members",value:"~80% (by the top 10% of members)",source_type:"first_party",status:"candidate",
+   metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""}
+];
+const KEY="kliq-canon-console-v1";
+let canon=load();
+
+function load(){
+  try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}
+  return JSON.parse(JSON.stringify(SEED));
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(canon));}catch(e){}}
+function byId(id){return canon.find(c=>c.id===id);}
+
+function monthsFromWindow(w){const m=String(w||"").match(/(\d+)\s*month/i);return m?+m[1]:null;}
+function isExpired(c){
+  if(!c.as_of)return false;const mo=monthsFromWindow(c.freshness_window);if(!mo)return false;
+  const d=new Date(c.as_of);if(isNaN(d))return false;
+  const exp=new Date(d);exp.setMonth(exp.getMonth()+mo);return exp<new Date();
+}
+function hasMarker(v){return /\[(confirm|define|pending)/i.test(String(v||""));}
+function recordComplete(c){
+  if(c.source_type==="third_party")return !!c.source_url && !!c.accessed;
+  const need=[c.metric_definition,c.query_ref,c.sample_n,c.as_of];
+  return need.every(v=>v && String(v).trim() && !hasMarker(v));
+}
+
+function render(){
+  const list=document.getElementById("canonList");
+  list.innerHTML="";
+  const v=canon.filter(c=>c.status==="verified").length;
+  document.getElementById("canonCount").textContent=canon.length+" facts, "+v+" verified";
+  canon.forEach(c=>list.appendChild(cardEl(c)));
+  save();
+}
+
+function cardEl(c){
+  const el=document.createElement("div");el.className="card";
+  const complete=recordComplete(c);const expired=isExpired(c);
+  const chips=[];
+  if(c.source_type==="first_party"){
+    chips.push(chip("metric_def",c.metric_definition&&!hasMarker(c.metric_definition)));
+    chips.push(chip("query_ref",c.query_ref&&!hasMarker(c.query_ref)));
+    chips.push(chip("sample_n",c.sample_n&&!hasMarker(c.sample_n)));
+    chips.push(chip("as_of",c.as_of&&!hasMarker(c.as_of)));
+  }
+  if(expired)chips.push('<span class="chip miss">freshness expired</span>');
+  el.innerHTML=`
+    <div class="row">
+      <span class="pill ${c.status}" data-flip="${c.id}" title="click to flip status">
+        <span>${c.status==="verified"?"✓ verified":"● candidate"}</span>
+      </span>
+      <div class="grow">
+        <div class="idline">${c.id} <span class="src">${c.source_type||"first_party"}</span></div>
+        <div class="claim">${esc(c.claim)}</div>
+        <div class="meta">value: <span class="val">${esc(c.value)}</span></div>
+        <div class="chips">${chips.join("")}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button data-edit="${c.id}">Edit</button>
+      </div>
+    </div>
+    <div class="edit" id="edit-${c.id}">
+      <div><label>value</label><input data-f="value" value="${attr(c.value)}"></div>
+      <div><label>status</label><select data-f="status">
+        <option ${c.status==="candidate"?"selected":""}>candidate</option>
+        <option ${c.status==="verified"?"selected":""}>verified</option></select></div>
+      <div><label>sample_n</label><input data-f="sample_n" value="${attr(c.sample_n)}"></div>
+      <div><label>as_of (YYYY-MM-DD)</label><input data-f="as_of" value="${attr(c.as_of)}"></div>
+      <div><label>query_ref</label><input data-f="query_ref" value="${attr(c.query_ref)}"></div>
+      <div><label>freshness_window</label><input data-f="freshness_window" value="${attr(c.freshness_window)}"></div>
+      <div class="full"><label>metric_definition</label><textarea data-f="metric_definition" rows="2">${esc(c.metric_definition)}</textarea></div>
+      <div class="full"><label>public_sentence (the only sanctioned phrasing)</label><textarea data-f="public_sentence" rows="2">${esc(c.public_sentence)}</textarea></div>
+      <div class="full actions">
+        <button class="primary" data-save="${c.id}">Save</button>
+        <button data-cancel="${c.id}">Cancel</button>
+        <span class="spacer" style="flex:1"></span>
+        <button class="ghost danger" data-del="${c.id}">Delete</button>
+      </div>
+    </div>`;
+  return el;
+}
+function chip(label,have){return `<span class="chip ${have?"have":"miss"}">${have?"✓":"✗"} ${label}</span>`;}
+function esc(s){return String(s==null?"":s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
+function attr(s){return String(s==null?"":s).replace(/"/g,"&quot;");}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-flip],[data-edit],[data-save],[data-cancel],[data-del]");
+  if(!t)return;
+  if(t.dataset.flip){const c=byId(t.dataset.flip);
+    if(c.status!=="verified" && !recordComplete(c) && c.source_type==="first_party"){
+      if(!confirm("This fact's verification record is incomplete (missing definition, query_ref, sample_n, or as_of). Flip to verified anyway?"))return;
+    }
+    c.status=c.status==="verified"?"candidate":"verified";render();return;}
+  if(t.dataset.edit){document.getElementById("edit-"+t.dataset.edit).classList.toggle("open");return;}
+  if(t.dataset.cancel){document.getElementById("edit-"+t.dataset.cancel).classList.remove("open");render();return;}
+  if(t.dataset.del){if(confirm("Delete "+t.dataset.del+"?")){canon=canon.filter(c=>c.id!==t.dataset.del);render();}return;}
+  if(t.dataset.save){
+    const c=byId(t.dataset.save);const box=document.getElementById("edit-"+t.dataset.save);
+    box.querySelectorAll("[data-f]").forEach(inp=>{c[inp.dataset.f]=inp.value;});
+    box.classList.remove("open");render();return;}
+});
+
+document.getElementById("addBtn").onclick=()=>{
+  const id=prompt("New fact id (kebab-case):");if(!id)return;
+  if(byId(id)){alert("id already exists");return;}
+  canon.unshift({id,claim:"",value:"",source_type:"first_party",status:"candidate",
+    metric_definition:"",dataset:"rcwl-data.prod_dataset",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""});
+  render();document.getElementById("edit-"+id).classList.add("open");
+};
+document.getElementById("resetBtn").onclick=()=>{if(confirm("Discard edits and reload the seed canon?")){canon=JSON.parse(JSON.stringify(SEED));render();}};
+document.getElementById("exportJsonBtn").onclick=()=>download("canon.json",JSON.stringify(canon,null,2));
+document.getElementById("exportMdBtn").onclick=()=>download("canon.md",canon.map(toMarkdown).join("\n\n"));
+document.getElementById("importBtn").onclick=()=>document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){canon=d;render();}else alert("Expected a JSON array.");}catch(err){alert("Invalid JSON.");}};
+  r.readAsText(f);
+};
+
+function toMarkdown(c){
+  const f=["id","claim","value","source_type"];
+  let y=f.map(k=>`${k}: ${c[k]||""}`);
+  if(c.source_type==="third_party"){
+    y.push(`source_url: ${c.source_url||""}`,`source_title: ${c.source_title||""}`,`accessed: ${c.accessed||""}`);
+  }else{
+    y.push(`metric_definition: ${c.metric_definition||""}`,`dataset: ${c.dataset||""}`,`query_ref: ${c.query_ref||""}`,
+      `sample_n: ${c.sample_n||""}`,`as_of: ${c.as_of||""}`,`derived_by: ${c.derived_by||"manish"}`,`approved_by: ${c.approved_by||""}`);
+  }
+  y.push(`freshness_window: ${c.freshness_window||"6 months"}`,`public_sentence: ${c.public_sentence||""}`,`status: ${c.status}`);
+  return "---\n"+y.join("\n")+"\n---";
+}
+function download(name,text){
+  const b=new Blob([text],{type:"text/plain"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);
+}
+
+function parseCitedIds(text){
+  const lines=text.split(/\r?\n/);
+  let ids=[];
+  const start=lines.findIndex(l=>/^\s*citedCanonIds:/.test(l));
+  if(start>=0){
+    const inline=lines[start].match(/citedCanonIds:\s*\[([^\]]*)\]/);
+    if(inline){ids=inline[1].split(",").map(s=>s.trim().replace(/['"]/g,"")).filter(Boolean);}
+    else{
+      for(let i=start+1;i<lines.length;i++){
+        const m=lines[i].match(/^\s*-\s*([a-z0-9\-]+)\s*$/);
+        if(m){ids.push(m[1]);continue;}
+        if(/^\s*$/.test(lines[i]))continue;
+        break;
+      }
+    }
+  }
+  if(!ids.length){ids=text.split(/[,\n]/).map(s=>s.trim()).filter(s=>/^[a-z0-9\-]+$/.test(s)&&byId(s));}
+  return [...new Set(ids)];
+}
+
+document.getElementById("verdictBtn").onclick=()=>{
+  const text=document.getElementById("answerInput").value;
+  const ids=parseCitedIds(text);
+  const forced=document.getElementById("alwaysAuto").checked;
+  const findings=[];
+  if(!ids.length)findings.push({sev:"important",msg:"No cited canon ids found. State the number and cite its canon id."});
+  ids.forEach(id=>{
+    const c=byId(id);
+    if(!c){findings.push({sev:"critical",msg:`${id}: ungrounded, no canon entry. Treated as invented.`});return;}
+    if(c.status!=="verified")findings.push({sev:"critical",msg:`${id}: status candidate, not citable until verified.`});
+    else{
+      if(!recordComplete(c))findings.push({sev:"critical",msg:`${id}: verified but the record is incomplete (definition / query_ref / sample_n / as_of).`});
+      if(isExpired(c))findings.push({sev:"important",msg:`${id}: past its freshness window, re-derive before citing.`});
+    }
+  });
+  const body=text.replace(/^---[\s\S]*?---/,"");
+  if(/—/.test(body))findings.push({sev:"important",msg:'Copy rule: em dash found. Use commas or periods.'});
+  if(/\bgenuine(ly)?\b/i.test(body))findings.push({sev:"important",msg:'Copy rule: "genuine/genuinely" found.'});
+  if(/\b(currently|today)\b/i.test(body))findings.push({sev:"important",msg:'Copy rule: "currently/today" on a point-in-time stat. Use the as-of date.'});
+
+  const blocking=findings.filter(f=>f.sev==="critical"||f.sev==="important");
+  let verdict,cls;
+  if(blocking.length===0){verdict="auto-publish";cls="auto";}
+  else if(forced){verdict="auto-publish (forced)";cls="forced";}
+  else{verdict="hold for review";cls="hold";}
+
+  const out=document.getElementById("verdictOut");
+  let html=`<div class="verdict ${cls}">${verdict}</div>`;
+  html+=`<div class="hint">cited: ${ids.length?ids.map(i=>`<code>${i}</code>`).join(", "):"none"}</div>`;
+  if(findings.length){
+    html+=`<ul class="reasons">`+findings.map(f=>`<li><strong>${f.sev}:</strong> ${esc(f.msg)}</li>`).join("")+`</ul>`;
+  }else{
+    html+=`<ul class="reasons"><li>No findings. Every cited stat is verified.</li></ul>`;
+  }
+  if(cls==="forced"&&blocking.length){
+    html+=`<div class="hint" style="color:var(--bad)">Forced publish is overriding ${blocking.length} blocking finding(s) above. Guardrail: do not forced-publish unverified precise stats against the public site.</div>`;
+  }
+  out.innerHTML=html;
+};
+
+render();
+</script>
+</body>
+</html>

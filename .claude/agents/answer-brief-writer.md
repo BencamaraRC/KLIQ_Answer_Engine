@@ -69,5 +69,6 @@ GROUNDING GAPS: <required facts that are not citable, if any>
 - Read-only on files and CMS. No Write, no Edit, no draft creation.
 - Do not require a cite that is not citable canon. Surface it as a gap instead.
 
-This is CHECKPOINT 2. Stop after you return. A human approves or edits before the
-Answer Writer runs.
+Under the founder-operated model (ANSWER-003) this is not a hard checkpoint. Stop
+after you return so the operator can edit the brief or verify a flagged candidate
+fact in the canon console, then the Answer Writer runs. There is no forced pause.
