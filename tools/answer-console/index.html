@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KLIQ Answer Engine, POC console</title>
+<style>
+  :root{
+    --bg:#faf9f5;--surface:#fff;--ink:#1f1e1b;--muted:#6b6a64;--line:#e4e2da;
+    --ok:#0f6e56;--ok-bg:#e1f5ee;--warn:#854f0b;--warn-bg:#faeeda;
+    --bad:#a32d2d;--bad-bg:#fcebeb;--accent:#534ab7;--accent-bg:#eeedfe;--radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:26px 20px 90px}
+  h1{font-size:22px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+  .cols{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+  @media(max-width:840px){.cols{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+  .panel h2{font-size:15px;font-weight:600;margin:0 0 12px;display:flex;gap:8px;align-items:center}
+  label{font-size:12px;color:var(--muted)}
+  input,select,textarea,button{font:inherit}
+  input[type=text],textarea,select{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  textarea{resize:vertical}
+  button{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;cursor:pointer}
+  button:hover{border-color:#c9c7bd}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .qrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .chipbtn{font-size:13px;background:var(--accent-bg);color:var(--accent);border:1px solid #d8d5f5;border-radius:999px;padding:5px 12px;cursor:pointer}
+  .chipbtn:hover{filter:brightness(.98)}
+  .stage{border-left:2px solid var(--line);padding:0 0 4px 16px;margin-left:6px;position:relative;opacity:.35;transition:opacity .25s}
+  .stage.on{opacity:1}
+  .stage:before{content:"";position:absolute;left:-7px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--line)}
+  .stage.on:before{background:var(--accent)}
+  .stage.done:before{background:var(--ok)}
+  .stage h3{font-size:13.5px;margin:0 0 2px;font-weight:600}
+  .stage .who{font-size:11.5px;color:var(--muted);font-weight:400}
+  .stage .body{font-size:13px;color:#33322e;margin:6px 0 14px;white-space:pre-wrap}
+  .stage .body.hide{display:none}
+  .answer{font-size:14.5px;line-height:1.6}
+  .answer h1{font-size:19px;margin:.2em 0 .4em}
+  .answer h2{font-size:15px;font-weight:600;margin:1em 0 .3em}
+  .answer p{margin:.5em 0}
+  .answer ol,.answer ul{margin:.4em 0 .4em 1.2em}
+  .answer code{background:#f1efe8;border-radius:4px;padding:1px 5px;font-size:12.5px}
+  .verdict{font-size:16px;font-weight:600;border-radius:8px;padding:11px 14px;margin:4px 0 8px}
+  .verdict.auto{background:var(--ok-bg);color:var(--ok)}
+  .verdict.hold{background:var(--warn-bg);color:var(--warn)}
+  .verdict.forced{background:var(--accent-bg);color:var(--accent)}
+  .verdict.none{background:#f1efe8;color:var(--muted)}
+  ul.reasons{margin:6px 0 0;padding-left:18px;font-size:13px}
+  ul.reasons li{margin:3px 0}
+  .pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:500;border:1px solid transparent;cursor:pointer}
+  .pill.verified{background:var(--ok-bg);color:var(--ok);border-color:#bfe6d8}
+  .pill.candidate{background:var(--warn-bg);color:var(--warn);border-color:#ecd6ad}
+  .fact{border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:8px}
+  .fact .idline{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--accent)}
+  .fact .claim{font-size:12.5px;color:#33322e;margin:2px 0}
+  .fact .val{font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .chip{font-size:11px;border-radius:6px;padding:1px 7px;border:1px solid var(--line);color:var(--muted)}
+  .chip.miss{background:var(--bad-bg);color:var(--bad);border-color:#e6c3c3}
+  .chip.have{background:var(--ok-bg);color:var(--ok);border-color:#bfe6d8}
+  .toggle{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .muted{color:var(--muted)}
+  .factmini{font-size:12px;color:var(--muted)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>KLIQ Answer Engine, POC console</h1>
+  <p class="sub">Founder-operated (ANSWER-003). Pick a question, watch the chain run, verify the canon, and watch the publish verdict change. Offline, no keys. The two sample questions are pre-run; for any other question, run it in Claude and paste the answer.</p>
+
+  <div class="cols">
+    <div>
+      <div class="panel">
+        <h2><i></i>1. Question</h2>
+        <input type="text" id="q" placeholder="e.g. why do members go quiet after joining a community" />
+        <div class="qrow" id="samples"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="primary" id="runBtn">Run the chain</button>
+          <span class="hint" id="runHint"></span>
+        </div>
+      </div>
+
+      <div class="panel" id="chainPanel" style="display:none">
+        <h2>2. The chain</h2>
+        <div id="stages"></div>
+      </div>
+
+      <div class="panel" id="answerPanel" style="display:none">
+        <h2>3. Answer</h2>
+        <div class="answer" id="answer"></div>
+        <div class="row" style="margin-top:12px">
+          <button id="expMd">Export markdown</button>
+          <button id="expJson">Export JSON</button>
+        </div>
+      </div>
+
+      <div class="panel" id="pastePanel" style="display:none">
+        <h2>Run your own question</h2>
+        <p class="hint">This POC pre-runs two samples. For any other question, run it in Claude (the <code>answer-factory</code> skill, or "run the answer factory on: your question"), then paste the finished answer markdown here.</p>
+        <textarea id="pasteBox" rows="7" placeholder="Paste answer markdown (with a citedCanonIds list)"></textarea>
+        <div class="row" style="margin-top:8px"><button class="primary" id="checkPaste">Fact-check and verdict</button></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>Publish verdict</h2>
+        <div id="verdict"><div class="verdict none">run a question first</div></div>
+        <div class="toggle" style="margin-top:8px"><input type="checkbox" id="alwaysAuto" /> <label for="alwaysAuto">Always-auto (forced)</label></div>
+      </div>
+      <div class="panel">
+        <h2>Canon panel <span class="factmini" id="canonCount"></span></h2>
+        <p class="hint">Click a status pill to flip candidate to verified. The verdict recomputes instantly.</p>
+        <div id="canonList"></div>
+        <div class="row" style="margin-top:8px"><button id="resetCanon">Reset canon</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SEED=[
+ {id:"ret-100gmv",claim:"retention at the $100 cumulative GMV milestone",value:"64%",source_type:"first_party",status:"candidate",metric_definition:"Share of coaches who first crossed $100 cumulative GMV and were still active 6 months later.",query_ref:"bq://saved_query/ret_100gmv_v1",sample_n:"92",as_of:"2026-05-19",freshness_window:"6 months",public_sentence:"Across 92 KLIQ coaches who crossed $100 in cumulative GMV (as of May 2026), 64% were still active six months later."},
+ {id:"ret-5000gmv",claim:"retention at the £5,000 GMV milestone (safe zone)",value:"95%",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+ {id:"week1-content-engagement",claim:"retention lift from content engagement in Week 1",value:"+43.3pp",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+ {id:"week1-publish-rate",claim:"share of new coaches who publish in their first week",value:"fewer than 5%",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+ {id:"eda-post-once",claim:"members who post once and never return",value:"44%",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+ {id:"eda-activity-replies",claim:"community activity that is replies vs new posts",value:"68%",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+ {id:"eda-reply-time",claim:"median reply time in the tightest communities",value:"70 to 120 minutes",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""},
+ {id:"eda-top10-posts",claim:"posts produced by the most active members",value:"~80% (top 10%)",source_type:"first_party",status:"candidate",metric_definition:"",query_ref:"",sample_n:"",as_of:"",freshness_window:"6 months",public_sentence:""}
+];
+const KEY="kliq-answer-console-v1";
+let canon=load();
+function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(SEED));}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(canon));}catch(e){}}
+const byId=id=>canon.find(c=>c.id===id);
+
+const SAMPLES=[{
+  q:"why do members go quiet after joining a community",
+  slug:"why-members-go-quiet-after-joining",stage:"grow",cited:["eda-post-once","eda-activity-replies","week1-content-engagement"],
+  research:"Demand: \"members join then never post\", \"how do I get lurkers to participate\", \"my community is a ghost town\". Likely stage: grow.\nCandidate data: eda-post-once (44%), eda-activity-replies (68%), week1-content-engagement (+43.3pp).",
+  definer:"Question: Why do members go quiet after joining a community?\nSlug: why-members-go-quiet-after-joining  |  Stage: grow\nMust cite: eda-post-once, week1-content-engagement. Must give the coach a Week 1 action.",
+  brief:"Lead with the answer, then the EDA evidence, then a Week 1 action list.\nRequired cites: eda-post-once (44%), eda-activity-replies (68%), week1-content-engagement (+43.3pp). All flagged CANDIDATE, not citable until verified.\nCTA (grow): See what keeps members active.",
+  answer:"Members go quiet because the first post is the hard part, and most never take a second one. The fix is to make Week 1 about content and conversation, not a welcome message and silence.\n\n44% of community members post once and never return, from community EDA. Communities run on conversation, not broadcast: 68% of activity is replies. A member who posts once and gets no reply has no reason to come back.\n\nWeek 1 is where this is won or lost. Content engagement in the first seven days is the strongest retention signal we see, a lift of 43.3 percentage points.\n\n## What to do this week\n1. Reply fast to every first post.\n2. Publish something in the first seven days, then ask one question that invites a reply.\n3. Welcome new members into an existing thread, not an empty feed."
+},{
+  q:"does crossing $100 in sales change whether a coach sticks around",
+  slug:"does-100-gmv-improve-retention",stage:"monetise",cited:["ret-100gmv"],
+  research:"Demand: \"is the first sale a turning point\", \"do paid coaches stay longer\". Likely stage: monetise.\nCandidate data: ret-100gmv (64% retention at the $100 milestone), record near-complete.",
+  definer:"Question: Does crossing $100 in sales change whether a coach sticks around?\nSlug: does-100-gmv-improve-retention  |  Stage: monetise\nMust cite: ret-100gmv. Must give the coach a way to reach the first $100.",
+  brief:"Lead with yes, then the milestone evidence, then how to get there.\nRequired cite: ret-100gmv, public_sentence used verbatim. Status CANDIDATE until verified, record (definition, query_ref, sample_n, as_of) is complete.\nCTA (monetise): Set up paid tiers on KLIQ.",
+  answer:"Yes. Crossing $100 in cumulative GMV is the point where retention separates. Across 92 KLIQ coaches who crossed $100 in cumulative GMV (as of May 2026), 64% were still active six months later.\n\nThe first $100 is less about the money than the proof. A coach who has been paid once is a coach who believes the business is real, and behaves like it.\n\n## What to do\n1. Put one small paid offer live this week, priced low enough to clear the first sale fast.\n2. Ask five engaged members directly. The first $100 usually comes from people already in the room.\n3. Treat the first sale as the goal, not the revenue. Momentum follows it."
+}];
+
+function monthsFromWindow(w){const m=String(w||"").match(/(\d+)\s*month/i);return m?+m[1]:null;}
+function isExpired(c){if(!c.as_of)return false;const mo=monthsFromWindow(c.freshness_window);if(!mo)return false;const d=new Date(c.as_of);if(isNaN(d))return false;const e=new Date(d);e.setMonth(e.getMonth()+mo);return e<new Date();}
+function hasMarker(v){return /\[(confirm|define|pending)/i.test(String(v||""));}
+function recordComplete(c){if(c.source_type==="third_party")return !!c.source_url&&!!c.accessed;return [c.metric_definition,c.query_ref,c.sample_n,c.as_of].every(v=>v&&String(v).trim()&&!hasMarker(v));}
+
+let current=null; // {cited, answer, slug, q}
+
+function mdToHtml(md){
+  const lines=md.split("\n");let html="",inOl=false,inUl=false;
+  const close=()=>{if(inOl){html+="</ol>";inOl=false}if(inUl){html+="</ul>";inUl=false}};
+  for(let ln of lines){
+    if(/^##\s+/.test(ln)){close();html+="<h2>"+esc(ln.replace(/^##\s+/,""))+"</h2>";continue;}
+    if(/^#\s+/.test(ln)){close();html+="<h1>"+esc(ln.replace(/^#\s+/,""))+"</h1>";continue;}
+    let m=ln.match(/^\d+\.\s+(.*)/);if(m){if(!inOl){close();html+="<ol>";inOl=true}html+="<li>"+inline(m[1])+"</li>";continue;}
+    m=ln.match(/^[-*]\s+(.*)/);if(m){if(!inUl){close();html+="<ul>";inUl=true}html+="<li>"+inline(m[1])+"</li>";continue;}
+    if(/^\s*$/.test(ln)){close();continue;}
+    close();html+="<p>"+inline(ln)+"</p>";
+  }
+  close();return html;
+}
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/`(.+?)`/g,"<code>$1</code>");}
+function esc(s){return String(s==null?"":s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
+
+const STAGE_DEFS=[
+ ["Demand Researcher","read-only","research"],
+ ["Question Definer","one question + criteria","definer"],
+ ["Answer Brief Writer","structure + required cites","brief"],
+ ["Answer Writer","grounded answer","__answer"],
+ ["Fact-Checker","traces claims to canon","__fc"],
+ ["Editorial Validator","emits the verdict","__verdict"]
+];
+
+function renderSamples(){
+  const box=document.getElementById("samples");
+  box.innerHTML="";
+  SAMPLES.forEach((s,i)=>{const b=document.createElement("button");b.className="chipbtn";b.textContent=s.q;b.onclick=()=>{document.getElementById("q").value=s.q;run();};box.appendChild(b);});
+}
+
+document.getElementById("runBtn").onclick=run;
+async function run(){
+  const q=document.getElementById("q").value.trim();
+  const sample=SAMPLES.find(s=>s.q.toLowerCase()===q.toLowerCase());
+  if(!sample){
+    document.getElementById("pastePanel").style.display="block";
+    document.getElementById("chainPanel").style.display="none";
+    document.getElementById("answerPanel").style.display="none";
+    document.getElementById("runHint").textContent="No pre-run sample for that question, use the paste panel below.";
+    current=null;renderVerdict(null);return;
+  }
+  document.getElementById("runHint").textContent="";
+  document.getElementById("pastePanel").style.display="none";
+  current={cited:sample.cited.slice(),answer:sample.answer,slug:sample.slug,q:sample.q};
+  const chain=document.getElementById("chainPanel");chain.style.display="block";
+  const stages=document.getElementById("stages");stages.innerHTML="";
+  const els=STAGE_DEFS.map(([name,who])=>{const d=document.createElement("div");d.className="stage";
+    d.innerHTML=`<h3>${name} <span class="who">${who}</span></h3><div class="body hide"></div>`;stages.appendChild(d);return d;});
+  document.getElementById("answerPanel").style.display="none";
+  for(let i=0;i<STAGE_DEFS.length;i++){
+    await wait(360);
+    const el=els[i];el.classList.add("on");
+    const key=STAGE_DEFS[i][2];const body=el.querySelector(".body");
+    if(key==="__answer"){body.textContent="Wrote content/"+sample.slug+".md, citing: "+sample.cited.join(", ");}
+    else if(key==="__fc"){body.textContent=factCheckText();}
+    else if(key==="__verdict"){body.textContent="Verdict emitted, see the panel on the right.";}
+    else{body.textContent=sample[key];}
+    body.classList.remove("hide");
+    if(i<4)el.classList.add("done");
+  }
+  els.forEach(e=>e.classList.add("done"));
+  const ap=document.getElementById("answerPanel");ap.style.display="block";
+  document.getElementById("answer").innerHTML=mdToHtml(sample.answer);
+  renderVerdict(compute(current.cited,sample.answer));
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function factCheckText(){
+  if(!current)return"";
+  return current.cited.map(id=>{const c=byId(id);
+    if(!c)return id+": NONE, ungrounded (fail)";
+    if(c.status!=="verified")return id+": candidate, not citable (fail)";
+    if(!recordComplete(c))return id+": verified but record incomplete (fail)";
+    if(isExpired(c))return id+": expired (fail)";
+    return id+": verified, record complete (pass)";
+  }).join("\n");
+}
+
+function compute(ids,answerBody){
+  const findings=[];
+  if(!ids||!ids.length)findings.push({sev:"important",msg:"No cited canon ids found."});
+  (ids||[]).forEach(id=>{const c=byId(id);
+    if(!c){findings.push({sev:"critical",msg:id+": ungrounded, no canon entry."});return;}
+    if(c.status!=="verified")findings.push({sev:"critical",msg:id+": candidate, not citable until verified."});
+    else{if(!recordComplete(c))findings.push({sev:"critical",msg:id+": verified but record incomplete (definition / query_ref / sample_n / as_of)."});
+      if(isExpired(c))findings.push({sev:"important",msg:id+": past its freshness window."});}
+  });
+  const body=(answerBody||"").replace(/^---[\s\S]*?---/,"");
+  if(/—/.test(body))findings.push({sev:"important",msg:'Copy rule: em dash found.'});
+  if(/\bgenuine(ly)?\b/i.test(body))findings.push({sev:"important",msg:'Copy rule: "genuine/genuinely" found.'});
+  if(/\b(currently|today)\b/i.test(body))findings.push({sev:"important",msg:'Copy rule: "currently/today" on a point-in-time stat.'});
+  const blocking=findings.filter(f=>f.sev==="critical"||f.sev==="important");
+  const forced=document.getElementById("alwaysAuto").checked;
+  let verdict,cls;
+  if(blocking.length===0){verdict="auto-publish";cls="auto";}
+  else if(forced){verdict="auto-publish (forced)";cls="forced";}
+  else{verdict="hold for review";cls="hold";}
+  return {verdict,cls,findings,ids:ids||[],blocking};
+}
+
+function renderVerdict(v){
+  const out=document.getElementById("verdict");
+  if(!v){out.innerHTML='<div class="verdict none">run a question first</div>';return;}
+  let html=`<div class="verdict ${v.cls}">${v.verdict}</div>`;
+  html+=`<div class="hint">cited: ${v.ids.length?v.ids.map(i=>`<code>${i}</code>`).join(", "):"none"}</div>`;
+  html+=`<ul class="reasons">`+(v.findings.length?v.findings.map(f=>`<li><strong>${f.sev}:</strong> ${esc(f.msg)}</li>`).join(""):"<li>No findings. Every cited stat is verified.</li>")+`</ul>`;
+  if(v.cls==="forced"&&v.blocking.length)html+=`<div class="hint" style="color:var(--bad)">Forced is overriding ${v.blocking.length} blocking finding(s). Guardrail: do not forced-publish unverified stats live.</div>`;
+  out.innerHTML=html;
+}
+
+function recompute(){
+  if(current)renderVerdict(compute(current.cited,current.answer));
+}
+
+function renderCanon(){
+  const list=document.getElementById("canonList");list.innerHTML="";
+  const v=canon.filter(c=>c.status==="verified").length;
+  document.getElementById("canonCount").textContent=canon.length+" facts, "+v+" verified";
+  canon.forEach(c=>{
+    const el=document.createElement("div");el.className="fact";
+    const chips=[];
+    chips.push(chip("def",c.metric_definition&&!hasMarker(c.metric_definition)));
+    chips.push(chip("query",c.query_ref&&!hasMarker(c.query_ref)));
+    chips.push(chip("n",c.sample_n&&!hasMarker(c.sample_n)));
+    chips.push(chip("as_of",c.as_of&&!hasMarker(c.as_of)));
+    el.innerHTML=`<div class="row"><span class="pill ${c.status}" data-flip="${c.id}">${c.status==="verified"?"✓ verified":"● candidate"}</span></div>
+      <div class="idline">${c.id}</div><div class="claim">${esc(c.claim)} — <span class="val">${esc(c.value)}</span></div>
+      <div class="chips">${chips.join("")}</div>`;
+    list.appendChild(el);
+  });
+  save();
+}
+function chip(l,have){return `<span class="chip ${have?"have":"miss"}">${have?"✓":"✗"} ${l}</span>`;}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-flip]");if(!t)return;
+  const c=byId(t.dataset.flip);
+  if(c.status!=="verified"&&!recordComplete(c)){
+    if(!confirm("This fact's verification record is incomplete (missing definition, query_ref, sample_n, or as_of). Flip to verified anyway? In real use, verify the number first."))return;
+  }
+  c.status=c.status==="verified"?"candidate":"verified";renderCanon();recompute();
+});
+document.getElementById("alwaysAuto").onchange=recompute;
+document.getElementById("resetCanon").onclick=()=>{if(confirm("Reset canon to seed (all candidate)?")){canon=JSON.parse(JSON.stringify(SEED));renderCanon();recompute();}};
+
+document.getElementById("checkPaste").onclick=()=>{
+  const text=document.getElementById("pasteBox").value;
+  const ids=parseCitedIds(text);
+  current={cited:ids,answer:text,slug:"pasted",q:document.getElementById("q").value};
+  document.getElementById("answerPanel").style.display="block";
+  document.getElementById("answer").innerHTML=mdToHtml(text.replace(/^---[\s\S]*?---/,""));
+  renderVerdict(compute(ids,text));
+};
+function parseCitedIds(text){
+  const lines=text.split(/\r?\n/);let ids=[];
+  const start=lines.findIndex(l=>/^\s*citedCanonIds:/.test(l));
+  if(start>=0){const inline=lines[start].match(/citedCanonIds:\s*\[([^\]]*)\]/);
+    if(inline){ids=inline[1].split(",").map(s=>s.trim().replace(/['"]/g,"")).filter(Boolean);}
+    else{for(let i=start+1;i<lines.length;i++){const m=lines[i].match(/^\s*-\s*([a-z0-9\-]+)\s*$/);if(m){ids.push(m[1]);continue;}if(/^\s*$/.test(lines[i]))continue;break;}}}
+  if(!ids.length)ids=text.split(/[,\n]/).map(s=>s.trim()).filter(s=>/^[a-z0-9\-]+$/.test(s)&&byId(s));
+  return [...new Set(ids)];
+}
+
+function frontmatter(){
+  if(!current)return"";
+  const s=SAMPLES.find(x=>x.slug===current.slug);
+  return `---\ntitle: ${current.q}\nslug: ${current.slug}\nladderStage: ${s?s.stage:""}\ncitedCanonIds:\n${current.cited.map(i=>"  - "+i).join("\n")}\n---\n\n`;
+}
+document.getElementById("expMd").onclick=()=>{if(current)download((current.slug||"answer")+".md",frontmatter()+current.answer);};
+document.getElementById("expJson").onclick=()=>{if(current)download((current.slug||"answer")+".json",JSON.stringify({question:current.q,slug:current.slug,citedCanonIds:current.cited,verdict:compute(current.cited,current.answer).verdict,body:current.answer},null,2));};
+function download(name,text){const b=new Blob([text],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+
+renderSamples();renderCanon();
+</script>
+</body>
+</html>

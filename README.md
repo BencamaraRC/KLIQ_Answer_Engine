@@ -43,6 +43,12 @@ Demand Researcher
 Publisher (Payload draft) is deferred under ANSWER-003.
 ```
 
+## Try the POC
+
+Open `tools/answer-console/index.html` in a browser. Pick a sample question, run
+the chain, then verify a fact and watch the verdict flip from hold to auto-publish.
+No setup. See [tools/answer-console/README.md](tools/answer-console/README.md).
+
 ## Quick start
 
 1. Open this folder in Claude Code. `CLAUDE.md` loads automatically.
@@ -70,6 +76,7 @@ reports/                          Fact-Checker grounding reports, per answer
 .claude/agents/                   the 7 agent files
 .claude/skills/answer-factory/    the orchestrator
 docs/                             scope and decision records (ANSWER-003)
+tools/answer-console/             hands-on POC: question -> chain -> answer -> verdict, user-operated
 tools/canon-console/              founder-operated browser console: verify canon, publish verdict, export
 .mcp.json                         registers the kliq-cms + kliq-research MCP servers (deferred under ANSWER-003)
 tools/kliq-cms-stub/              local dev stub for kliq-cms (deferred)
